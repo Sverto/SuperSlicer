@@ -76,6 +76,9 @@ group:External perimeter first
 	end_line
 	setting:external_perimeters_vase
 	setting:perimeter_bonding
+group:Fuzzy skin (experimental)
+	setting:fuzzy_skin_perimeter_mode
+	setting:fuzzy_skin_shape
 
 page:Slicing:layers
 group:Layer height

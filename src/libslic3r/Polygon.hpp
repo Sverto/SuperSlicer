@@ -13,6 +13,12 @@ namespace Slic3r {
 class Polygon;
 typedef std::vector<Polygon> Polygons;
 
+enum class FuzzyShape {
+	Triangle,
+	Sawtooth,
+	Random
+};
+
 class Polygon : public MultiPoint
 {
 public:
@@ -36,6 +42,9 @@ public:
 	}
     Polygon& operator=(const Polygon &other) { points = other.points; return *this; }
     Polygon& operator=(Polygon &&other) { points = std::move(other.points); return *this; }
+
+	// make polygon fuzzy (for fuzzy skin feature)
+	void fuzzy(FuzzyShape shape, int deepness);
 
     // last point == first point for polygons
     const Point& last_point() const override { return this->points.front(); }

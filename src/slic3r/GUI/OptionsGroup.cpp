@@ -982,6 +982,10 @@ boost::any ConfigOptionsGroup::get_config_value(const DynamicPrintConfig& config
             ret = static_cast<int>(config.option<ConfigOptionEnum<DenseInfillAlgo>>(opt_key)->value);
         } else if (opt_key == "ironing_type") {
             ret = static_cast<int>(config.option<ConfigOptionEnum<IroningType>>(opt_key)->value);
+        } else if (opt_key == "fuzzy_skin_perimeter_mode") {
+			ret = static_cast<int>(config.option<ConfigOptionEnum<FuzzySkinPerimeterMode>>(opt_key)->value);
+		} else if (opt_key == "fuzzy_skin_shape") {
+			ret = static_cast<int>(config.option<ConfigOptionEnum<FuzzySkinShape>>(opt_key)->value);
 		} else if (opt_key == "machine_limits_usage") {
 			ret = static_cast<int>(config.option<ConfigOptionEnum<MachineLimitsUsage>>(opt_key)->value);
         } else if (opt_key == "no_perimeter_unsupported_algo") {

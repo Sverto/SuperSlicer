@@ -211,6 +211,10 @@ void change_opt_value(DynamicPrintConfig& config, const t_config_option_key& opt
 				config.set_key_value(opt_key, new ConfigOptionEnum<DenseInfillAlgo>(boost::any_cast<DenseInfillAlgo>(value)));
 			else if (opt_key.compare("ironing_type") == 0)
 				config.set_key_value(opt_key, new ConfigOptionEnum<IroningType>(boost::any_cast<IroningType>(value)));
+			else if (opt_key.compare("fuzzy_skin_perimeter_mode") == 0)
+				config.set_key_value(opt_key, new ConfigOptionEnum<FuzzySkinPerimeterMode>(boost::any_cast<FuzzySkinPerimeterMode>(value))); 
+			else if (opt_key.compare("fuzzy_skin_shape") == 0)
+				config.set_key_value(opt_key, new ConfigOptionEnum<FuzzySkinShape>(boost::any_cast<FuzzySkinShape>(value))); 
 			else if (opt_key.compare("machine_limits_usage") == 0)
 				config.set_key_value(opt_key, new ConfigOptionEnum<MachineLimitsUsage>(boost::any_cast<MachineLimitsUsage>(value)));
 			else if (opt_key.compare("no_perimeter_unsupported_algo") == 0)

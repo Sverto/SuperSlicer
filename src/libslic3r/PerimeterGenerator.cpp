@@ -8,6 +8,7 @@
 #include <cmath>
 #include <cassert>
 #include <vector>
+#include <chrono>
 
 #include "BoundingBox.hpp"
 #include "ExPolygon.hpp"
@@ -37,6 +38,10 @@ namespace Slic3r {
 
 void PerimeterGenerator::process()
 {
+    // nasty hack! initialize random generator
+	long time_us = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::time_point_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now()).time_since_epoch()).count();
+	srand(this->layer->id() * time_us);
+
     //set spacing
     this->perimeter_flow.spacing_ratio = std::min(this->perimeter_flow.spacing_ratio, (float)this->config->perimeter_overlap.get_abs_value(1));
     this->ext_perimeter_flow.spacing_ratio = std::min(this->ext_perimeter_flow.spacing_ratio, (float)this->config->external_perimeter_overlap.get_abs_value(1));
@@ -459,6 +464,46 @@ void PerimeterGenerator::process()
                 }
             }
 
+            // fuzzy skin configuration
+	        int fuzzy_skin_deepness;
+	        FuzzyShape fuzzy_skin_shape;
+	        if (this->object_config->fuzzy_skin_perimeter_mode != FuzzySkinPerimeterMode::None) {
+		        switch (this->object_config->fuzzy_skin_shape) {
+			        case FuzzySkinShape::Triangle1:
+			        case FuzzySkinShape::Sawtooth1:
+			        case FuzzySkinShape::Random1:
+				        fuzzy_skin_deepness = 1;
+				        break;
+			        case FuzzySkinShape::Triangle2:
+			        case FuzzySkinShape::Sawtooth2:
+			        case FuzzySkinShape::Random2:
+				        fuzzy_skin_deepness = 2;
+				        break;
+			        case FuzzySkinShape::Triangle3:
+			        case FuzzySkinShape::Sawtooth3:
+			        case FuzzySkinShape::Random3:
+				        fuzzy_skin_deepness = 3;
+				        break;
+			        }
+			        switch (this->object_config->fuzzy_skin_shape) {
+			        case FuzzySkinShape::Triangle1:
+			        case FuzzySkinShape::Triangle2:
+			        case FuzzySkinShape::Triangle3:
+				        fuzzy_skin_shape = FuzzyShape::Triangle;
+				        break;
+			        case FuzzySkinShape::Sawtooth1:
+			        case FuzzySkinShape::Sawtooth2:
+			        case FuzzySkinShape::Sawtooth3:
+				        fuzzy_skin_shape = FuzzyShape::Sawtooth;
+				        break;
+			        case FuzzySkinShape::Random1:
+			        case FuzzySkinShape::Random2:
+			        case FuzzySkinShape::Random3:
+				        fuzzy_skin_shape = FuzzyShape::Random;
+				        break;
+		        }
+	        }
+
             // In case no perimeters are to be generated, loop_number will equal to -1.            
             std::vector<PerimeterGeneratorLoops> contours(loop_number + 1);    // depth => loops
             std::vector<PerimeterGeneratorLoops> holes(loop_number + 1);       // depth => loops
@@ -693,9 +738,34 @@ void PerimeterGenerator::process()
                     }
                 }
 
-                for (const ExPolygon& expolygon : next_onion) {
+                for (ExPolygon& expolygon : next_onion) {
                     //TODO: add width here to allow variable width (if we want to extrude a sightly bigger perimeter, see thin wall)
-                    contours[i].emplace_back(expolygon.contour, i, true, has_steep_overhang);
+
+                    bool skip_polygon = false;
+
+					if (this->object_config->fuzzy_skin_perimeter_mode != FuzzySkinPerimeterMode::None) {
+						if (i == 0 && (this->object_config->fuzzy_skin_perimeter_mode != FuzzySkinPerimeterMode::ExternalSkipFirst || this->layer->id() > 0)) {
+							if (
+								this->object_config->fuzzy_skin_perimeter_mode == FuzzySkinPerimeterMode::External ||
+								this->object_config->fuzzy_skin_perimeter_mode ==  FuzzySkinPerimeterMode::ExternalSkipFirst
+							) {
+								ExPolygon expolygon_fuzzy(expolygon);
+								expolygon_fuzzy.contour.fuzzy(fuzzy_skin_shape, fuzzy_skin_deepness);
+								// compensate for the depth of intersection.
+								contours[i].emplace_back(PerimeterGeneratorLoop(expolygon_fuzzy.contour, i, true)); 
+								skip_polygon = true;
+							}
+							else {
+								expolygon.contour.fuzzy(fuzzy_skin_shape, fuzzy_skin_deepness);
+							}
+						}
+					}
+
+					if (!skip_polygon) {
+						// compensate for the depth of intersection.
+						contours[i].emplace_back(PerimeterGeneratorLoop(expolygon.contour, i, true));
+					}
+
                     if (!expolygon.holes.empty()) {
                         holes[i].reserve(holes[i].size() + expolygon.holes.size());
                         for (const Polygon& hole : expolygon.holes)

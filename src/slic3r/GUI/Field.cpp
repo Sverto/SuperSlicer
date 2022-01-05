@@ -1486,6 +1486,10 @@ boost::any& Choice::get_value()
             convert_to_enum_value<CompleteObjectSort>(ret_enum);
         else if (m_opt_id.compare("display_orientation") == 0)
             convert_to_enum_value<SLADisplayOrientation>(ret_enum);
+		else if (m_opt_id.compare("fuzzy_skin_perimeter_mode") == 0)
+			m_value = static_cast<FuzzySkinPerimeterMode>(ret_enum);
+		else if (m_opt_id.compare("fuzzy_skin_shape") == 0)
+			m_value = static_cast<FuzzySkinShape>(ret_enum);
         else if (m_opt_id.compare("gcode_flavor") == 0)
             convert_to_enum_value<GCodeFlavor>(ret_enum);
         else if (m_opt_id.compare("host_type") == 0)

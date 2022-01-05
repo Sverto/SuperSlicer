@@ -470,6 +470,7 @@ const std::vector<std::string>& Preset::print_options()
         "external_perimeters_vase",
         "external_perimeters_nothole",
         "external_perimeters_hole",
+        "fuzzy_skin_perimeter_mode", "fuzzy_skin_shape",
         // fill pattern
         "fill_density",
         "fill_pattern",
